@@ -1,0 +1,2 @@
+version,device name,recording epoch time,recording time,recording timezone,platform,appVersion,device id,sensors,sampleRateMs,standardisation,platform version
+3,iPhone 17 Pro,1776820795288,2026-04-22_01-19-55,America/Indiana/Indianapolis,ios,1.57,095cf1d8-1f27-4cce-af24-1584f9bef356,Accelerometer|Gravity|Annotation|AccelerometerUncalibrated,10|10||10,false,26.3.1

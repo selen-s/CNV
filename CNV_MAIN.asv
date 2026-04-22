@@ -1,0 +1,10 @@
+%% CELESTIAL NAVIGATION IN S2 - MAIN 
+% Selen Serdar
+
+% input accelerometer readings:
+Gravity = load("acc\Gravity.csv"); % gravity vector in the body frame
+
+% input star video:
+Stars = load("videos\starchart.mov"); % get the star video
+
+%% plate solve the star
