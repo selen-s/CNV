@@ -7,28 +7,16 @@ function [ra, dec] = astro_solve(video)
 
 % find the astrometry functions
 addpath /path/to/matlab-astrometry
-as = astrometry; 
-
 % turn the video into an image sequence
 v = VideoReader(video);
-mkdir('video_frames');
-% save frames
-i = 1;
-while hasFrame(v)
+% save frames and apply astronomy solver to each img in the sequence. 
+
+for idx = 1:v.NumFrames
     frame = readFrame(v);
-    filename = sprintf('frame%04d.jpg', i);
-    fullname = fullfile('video_frames', filename);
-    imwrite(frame, fullname);
-    i = i + 1;
+    as = astrometry(frame)
+    [r, d] = xy2sky_tan(frame, x, y);
+    ra(idx) = r;
+    dec(idx) = d; 
 end
-
-as = astrometry.load(video_frames);
-% apply the astrometry solver to each image in the sequence. 
-
-[ra, dec] = xy2sky(as, x, y);
-
-
-
-
 
 end
