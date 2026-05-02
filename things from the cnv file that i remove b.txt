@@ -1,0 +1,225 @@
+things from the cnv file that i remove but dont want to delete:
+
+#===================== <this section is QUESTIONABLE> ======================
+        # use orixgin to get A matrix (STATE MATRIX) 
+        D1a = np.eye(3)
+        D2a = -se2_wedge(u0)
+        D3a = se2_wedge(u0)
+        D4a = np.eye(3)
+        A = D1a @ D2a @ D3a @ D4a
+
+        # get the B mtrx (INPUT MATRIX)
+        D1b = np.eye(3)
+        D2b = se2_wedge(cls.xi)
+        Adterm = ad_se2(cls.X)
+        D3b = se2_wedge(u)
+        B = D1b @ D2b @ Adterm @ D3b 
+
+         # get the Ct* matrix (EQUIVARIANT OUTPUT MATRIX)
+        gb_est = cls.X @ cls.xi # estimate of gravity vector (IS IT XI OR XI0?) ====================
+        Cts = 0.5 * (cls.phi(E, gb) + cls.phi(E, gb_est)) @(ad_se2(np.linalg.inv(cls.X)) @ eps_wedge)
+
+
+
+        in class examoe
+    import sympy
+# frechet derivative
+
+R = sympy.MatrixSymbol('R', 3, 3)
+eta = sympy.MatrixSymbol('eta', 3, 1)
+Omega = sympy.MatrixSymbol('Omega',3,1)
+
+phi = R.T @ eta
+phi.as_explicit()
+
+phi.as_explicit().jacobian(eta)
+
+filter loop
+
+import numpy as np
+from scipy.linalg import expm
+
+def run_filter(imu_data, sensor_data, dt):
+    # 1. Initialize
+    # eqf = EquivariantFilter(initial_X, initial_Sigma)
+    
+    for t in range(len(imu_data)):
+        # --- PREDICTION STEP (High Frequency) ---
+        # u is usually angular velocity [wx, wy, wz]
+        u = imu_data[t]
+        eqf.predict(u, dt)
+        
+        # --- CORRECTION STEP (When sensor data is available) ---
+        # y is the measured vector in body frame (e.g., [ax, ay, az])
+        if sensor_data_available(t):
+            y = sensor_data[t]
+            eqf.correct(y)
+            
+        # --- LOGGING ---
+        # Store current X_hat for plotting or control
+        current_orientation = eqf.X_hat
+
+def implement(cls, u, gb): 
+        """
+        gb is GRAVITY MEASUREMENT in the BODY FRAME
+        u is PREDICTED DYNAMICS
+        """
+        # compute the origin acceleration/gravity
+        u0 = cls.psi(np.linalg.inv(cls.X0), gb)
+        R =  cls.X[0:3, 0:3] # rotation matrix in SO3
+
+        A = np.zeros((2,2)) # state matrix
+        B = np.array([[0,1,0],[0,0,1]]) @ R # input matrix
+        E = np.linalg.inv(cls.X) @ cls.X # group error element
+
+        # define the global error:
+        e = cls.phi(np.linalg.inv(cls.X), gb)
+        # define the local coordinates of the global error:
+        epsilon = cls.theta(e) 
+        eps_wedge = se3_wedge(epsilon)
+
+        # define the measurements y
+        g = gb / np.absolute(gb)
+        ghat = cls.ghat # updated in the filtering loop 
+
+        # equivariant output matrix
+        arr = np.array([[0, 0],[1,0],[0,1]])
+        ys = se3_wedge(g) + se3_wedge(ghat)
+        Cts = 0.5 * (ys) @ R.T @ arr
+
+        Dt = np.eye(3) # jacobian of the log map at identity (theta derivatiuve)
+        # compute state and output gain matrices
+        M = B @ cls.Q**3 @ B.T + B @ cls.Q @ B.T
+        N = Dt @ cls.Rcov @ Dt.T
+
+        # UPDATE EVERYTHING =================================================
+        # THE OUTPUTS ARE TIME DERIVATIVES AND WILL BE NUMERICALLY INTEGRATED
+        # ricatti termm
+        cls.sigma = A @ cls.sigma + cls.sigma @ A.T + M - (cls.sigma @ Cts.T @ np.linalg.inv(N) @ Cts @ cls.sigma)
+        # kalman gain
+        residual = gb - cls.phi(cls.X, cls.xi)
+        Delta = -se3_wedge(cls.xi0) @ (np.eye(3) - cls.xi0 @ cls.xi0.T) @ cls.sigma @ Cts.T @ np.linalg.inv(N) @ residual
+        # update the observers state Xhat.
+        Xdot = se3_wedge(ghat) @ cls.X + Delta @ R
+
+        return Xdot
+
+ # find RA, dec from gw.
+    ra = np.rad2deg(np.atan2(gy, gx))
+    dec = np.rad2deg(np.atan2(gz, gy))
+
+
+def get_latlon(gw, time, ra, dec):
+    gx = gw[0]
+    gy = gw[1]
+    gz = gw[2]
+"""
+since the image was plate solved, we know what the stars around zenith are. 
+we also have the gravity vector for each of the stars around zenith. 
+average the star data 
+once we have the star at zenith, we can input the time to see where that
+star is over. (get Ra, Dec of the star)
+then, use the time to get direction of gravity vecotr. 
+    """
+    # find GMST from given time. assume given time is in UTC
+    # gmst is calculated in seconds
+    gmst =  .004167 * (24110.54841 + 8640184.812866 * time + .093104*(time**2) - (6.2*10**-6)*(time**3) )
+    # convt gmst to degrees
+    lon = ra - gmst
+
+    # combine with the 
+
+    
+
+    return lat, lon
+
+
+
+star video processing:
+vid = 'starchart.mov'
+cap = cv2.VideoCapture(vid)
+# output directory
+output_dir = 'frames'
+os.makedirs(output_dir, exist_ok=True)
+
+count = 0
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break  # End of video
+    
+    # save each frame as a JPG
+    frame_name = os.path.join(output_dir, f"frame_{count:04d}.jpg")
+    cv2.imwrite(frame_name, frame)
+    count += 1
+
+cap.release()
+print(f"Extracted {count} frames.")
+
+# turn all the frames into 'data' and get coordinates
+import glob
+frame_files = sorted(glob.glob(os.path.join(output_dir, "*.jpg")))
+
+for frame_path in frame_files:
+    # load and convert
+    img = cv2.imread(frame_path, cv2.IMREAD_GRAYSCALE)
+    data = img.astype(np.float32)
+
+    # analyze with SEP
+    bkg = sep.Background(data)
+    objects = sep.extract(data - bkg, 1.5, err=bkg.globalrms)
+
+    # convert extracted XY cords into a list for WCS
+    pixel_coords = np.column_stack((objects['x'], objects['y']))
+    # world coordinates
+    world_coords = wcs.all_pix2world(pixel_coords,1)
+
+
+## i think i dont need a video of the stars, just a picture?
+# solve the image 
+def solve_img_local(imgpath):
+    cmd = [astap_path, "-f", imgpath, "-z", "0"]
+    subprocess.run(cmd)
+    wcs_file = imgpath.replace(".jpg", ".wcs")
+    return wcs_file
+
+header = fits.getheader('solved_image.fits')
+wcs = WCS(header)
+
+mean, med, std = sigma_clipped_stats()
+
+
+
+star solver:
+
+
+# plate solver in astap
+def solveimg(fitspath, astap):
+    cmd = [astap, "-f", fitspath, "-solve", "-r", "180", "-z", "0"]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        print("ASTAP Output:", result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"ASTAP failed to solve (Status {e.returncode})")
+        print("Error details:", e.stderr)
+
+    # subprocess.run(cmd, check=True)
+
+    # newwcs = fitspath.replace(".fits", ".wcs")
+    # if os.path.exists(newwcs):
+    #     os.remove(newwcs)
+
+
+# load data and set up WCS
+stars = png_to_fits(imgpath, fitspath)
+solveimg(stars, astap_path)
+
+with fits.open(stars, memmap=False) as hdul:
+    data = hdul[0].data
+    wcs = WCS(hdul[0].header)
+
+height, width = data.shape
+center = wcs.all_pix2world([[(width-1)/2.0, (height-1)/2.0]],0)
+ra = center[0][0]
+dec = center[0][1]
+ra
