@@ -1,0 +1,26 @@
+SIMPLE  =                    T / conforms to FITS standard                      
+BITPIX  =                    8 / array data type                                
+NAXIS   =                    0 / Minimal header                                 
+EXTEND  =                    T                                                  
+CTYPE1  = 'RA---TAN'           / first parameter RA,    projection TANgential   
+CTYPE2  = 'DEC--TAN'           / second parameter DEC,  projection TANgential   
+CUNIT1  = 'deg     '           / Unit of coordinates                            
+EQUINOX =               2000.0 / Equinox of coordinates                         
+CRPIX1  =  1.504500000000E+003 / X of reference pixel                           
+CRPIX2  =  1.504500000000E+003 / Y of reference pixel                           
+CRVAL1  =  1.489475022230E+002 / RA of reference pixel (deg)                    
+CRVAL2  =  6.936016218409E+001 / DEC of reference pixel (deg)                   
+CDELT1  =  4.400727039075E-004 / X pixel size (deg)                             
+CDELT2  =  4.400529730957E-004 / Y pixel size (deg)                             
+CROTA1  =  2.850534914925E+001 / Image twist X axis (deg)                       
+CROTA2  =  2.851115889876E+001 / Image twist Y axis (deg) E of N if not flipped.
+CD1_1   =  3.867238171107E-004 / CD matrix to convert (x,y) to (Ra, Dec)        
+CD1_2   = -2.100206513745E-004 / CD matrix to convert (x,y) to (Ra, Dec)        
+CD2_1   =  2.100504456961E-004 / CD matrix to convert (x,y) to (Ra, Dec)        
+CD2_2   =  3.866851812434E-004 / CD matrix to convert (x,y) to (Ra, Dec)        
+PLTSOLVD=                    T / Astrometric solved by ASTAP v2026.04.21.       
+COMMENT 7  Solved in 14.2 sec. Offset 107.6d.
+WARNING = 'Warning inexact scale! Set FOV=1.32d or scale=1.6"/pix '
+COMMENT cmdline:"C:\Program Files\astap\astap.exe" -f C:\Users\selen\Documents\p
+COMMENT uthon\590\CNV\CNV\starimg.fits -solve -r 180 -z 0
+END                                                                             
