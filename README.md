@@ -1,6 +1,6 @@
-## CNV (Celestial Navigation, Position Estimation using EqF on Sphere S2)
+## CNV (Celestial Navigation, Position Estimation on Sphere S2)
 
-This repository contains directories and files used in the creation of the CNV_mid.ipynb notebook. 
+This repository contains directories and files used in the creation of celestial navigation software CNV. 
 
 CNV is a software prototype that, given inputs in J2000 epoch time (seconds) and right ascension / declination coordinates of a stellar object at zenith, returns an estimate of the user's latitude and longitude on Earth. 
 
